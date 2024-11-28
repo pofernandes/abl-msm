@@ -12,32 +12,32 @@ module load gromacs-env
 
 # Download ions.mdp and minim.mdp PME electrostatics
 URLI="https://raw.githubusercontent.com/pofernandes/abl-msm/refs/heads/main/ions.mdp"
-wget "$URLI"
+srun wget "$URLI"
 
 URLM="https://raw.githubusercontent.com/pofernandes/abl-msm/refs/heads/main/minim.mdp"
-wget "$URLM"
+srun wget "$URLM"
 # Preparing MD commands 
 
-gmx_mpi editconf \
+srun gmx_mpi editconf \
         -f protein_processed.gro \
         -o protein_newbox.gro \
         -c \
         -d 1.5 \
         -bt cubic
 
-gmx_mpi solvate \
+srun gmx_mpi solvate \
         -cp protein_newbox.gro \
         -cs spc216.gro \
         -p topol.top \
         -o protein_solv.gro
 
-gmx grompp \
+srun gmx grompp \
         -f ions.mdp \
         -c protein_solv.gro \
         -p topol.top \
         -o ions.tpr
 
-gmx genion \
+srun gmx genion \
         -s ions.tpr \
         -o protein_solv_ions.gro \
         -p topol.top \
@@ -48,12 +48,12 @@ gmx genion \
 	13
 EOF
 
-gmx_mpi grompp \
+srun gmx_mpi grompp \
         -f minim.mdp \
         -c protein_solv_ions.gro \
         -p topol.top \
         -o em.tpr
 
-gmx_mpi mdrun \
+srun gmx_mpi mdrun \
         -deffnm em \
         -g log_em
